@@ -1,0 +1,338 @@
+global string $branchNameObj;
+global string $flowerNameObj;
+global string $textbox;
+global string $iterSlider;
+global string $stepSlider;
+global string $angleSlider;
+global string $tree;
+global string $treeFrame;
+global int $currNum_LSIN = 1;
+
+global proc makeLSystemInstanceNodeWindow() {
+    global string $branchNameObj;
+    global string $flowerNameObj;
+    global string $textbox;
+    global string $iterSlider;
+    global string $stepSlider;
+    global string $angleSlider;
+    global string $tree;
+    global string $treeFrame;
+
+    string $window = `window -title "LSystem Instancer"`;
+    	paneLayout -configuration "horizontal2";
+    	frameLayout -label "CREATE AN LSYSTEM FROM SHAPE INSTANCES" -marginHeight 5 -marginWidth 5 -collapsable false -borderVisible false;
+    		rowLayout -numberOfColumns 3 -adjustableColumn 2 -columnAlign3 "left" "center" "right";
+    			text -label "Browse for grammar files or write your own below" -align "left";
+    			text -label "";
+    			button -label "Browse" -command "showInstanceFileDialog";
+    		setParent ..;
+
+    		frameLayout -labelVisible false -collapsable false -borderVisible false;
+    			$textbox = `scrollField -wordWrap false`;
+    		setParent ..;
+
+            frameLayout -label "Names of the Objects to Duplicate:" -marginHeight 5 -marginWidth 5 -collapsable false -backgroundShade true -borderVisible false;
+                columnLayout-adjustableColumn true;
+                    rowLayout -numberOfColumns 6 -adjustableColumn 2;
+                        text -label "Branches: ";
+                        $branchNameObj = `textField`;
+                        text -label ", ";
+                        button -label "Selected Object" -command "getSelectedBranch";
+                        text -label ", or ";
+                        button -label " Create Cube  " -command "makeLSysCube";
+                    setParent ..;
+                    rowLayout -numberOfColumns 6 -adjustableColumn 2;
+                        text -label "Flowers:   ";
+                        $flowerNameObj = `textField`;
+                        text -label ", ";
+                        button -label "Selected Object" -command "getSelectedFlower";
+                        text -label ", or ";
+                        button -label "Create Sphere" -command "makeLSysSphere";
+                    setParent ..;
+                setParent ..;
+    		setParent ..;
+            
+    		frameLayout -label "LSystem Parameters" -collapsable true -backgroundShade true -borderVisible false;
+    			columnLayout;
+    				$iterSlider = `intSliderGrp -label "Iterations" -min 1 -max 10 -value 1 -field true`;
+    				$stepSlider = `floatSliderGrp -label "Default Step Size" -min 1.0 -max 10.0 -value 1.0 -field true`;
+    				$angleSlider = `floatSliderGrp -label "Default Angle" -min 0 -max 360 -value 22.5 -field true`;
+    			setParent ..;
+    		setParent ..;
+            
+    		$treeFrame = `frameLayout -label "Existing Trees" -collapsable true -backgroundShade true -borderVisible false -collapse true`;
+                string $formL = `formLayout`;
+                $tree = `treeView -parent $formL -numberOfButtons 1 -abr true
+                                    -pressCommand 1 "deleteThisTree" -selectCommand "selectTree"`;
+                setParent ..;
+    		setParent ..;
+
+    		rowLayout -numberOfColumns 3 -adjustableColumn 2;
+    			button -label "Create Instancer" -command "onCreateLInstanceNode";
+    			text -label "";
+    			button -label "Clear" -command "onClearLInst";
+    		setParent ..;
+    	setParent ..;
+    
+    formLayout -e -attachForm  $tree "top" 2 -attachForm  $tree "left" 2
+	              -attachForm  $tree "bottom" 2 -attachForm  $tree "right" 2 $formL;
+    
+    showWindow $window;
+}
+makeLSystemInstanceNodeWindow();
+
+global proc deleteThisTree(string $str, int $onoff) {
+    global string $tree;
+    treeView -edit -removeItem $str $tree;
+
+    if(`objExists $str`) {
+        delete $str;
+    }
+}
+
+global proc int selectTree(string $str, int $onoff) {
+    global string $tree;
+    print($str + "\n");
+
+    if(`objExists $str`) {
+        select -r $str;
+    }
+    else {
+        treeView -edit -removeItem $str $tree;
+    }
+    return 1;
+}
+
+global proc getSelectedBranch() {
+    global string $branchNameObj;
+
+    string $selected[] = `ls -selection`;
+    int $listSize = `size $selected`;
+
+    if ($listSize == 1) {
+        textField -e -tx $selected[0] $branchNameObj;
+        print($selected[0] + "\n");
+    }
+    else if ($listSize > 1) {
+        textField -e -tx "Choose One" $branchNameObj;
+        print("Multiple Selected\n");
+    }
+    else {
+        textField -e -tx "None" $branchNameObj;
+        print("None Selected\n");
+    }
+}
+
+global proc getSelectedFlower() {
+    global string $flowerNameObj;
+
+    string $selected[] = `ls -selection`;
+    int $listSize = `size $selected`;
+
+    if ($listSize == 1) {
+        textField -e -tx $selected[0] $flowerNameObj;
+        print($selected[0] + "\n");
+    }
+    else if ($listSize > 1) {
+        textField -e -tx "Choose One" $flowerNameObj;
+        print("Multiple Selected\n");
+    }
+    else {
+        textField -e -tx "None" $flowerNameObj;
+        print("None Selected\n");
+    }
+}
+
+global proc makeLSysCube()
+{
+    global string $branchNameObj;
+    global int $currNum_LSIN;
+
+    // Set up names
+    string $shapeName = "pCube" + $currNum_LSIN;
+
+    print("Creating a cube\n");
+    if(`objExists $shapeName` == false) {
+        string $cubeInfo[] = `polyCube -n $shapeName -w 1 -h 1 -d 1 -sx 1 -sy 1 -sz 1 -ax 0 1 0 -cuv 4 -ch 1`;
+        print($cubeInfo);
+    }
+    else {
+        select -r $shapeName;
+    }
+
+    textField -e -tx $shapeName $branchNameObj;
+}
+
+global proc makeLSysSphere()
+{
+    global string $flowerNameObj;
+    global int $currNum_LSIN;
+
+    // Set up names
+    string $shapeName = "pSphere" + $currNum_LSIN;
+
+    print("Creating a sphere\n");
+    if(`objExists $shapeName` == false) {
+        string $sphereInfo[] = `polySphere -n $shapeName -r 1 -sx 10 -sy 10 -ax 0 1 0 -cuv 2 -ch 1`;
+        print($sphereInfo);
+    }
+    else {
+        select -r $shapeName;
+    }
+
+    textField -e -tx $shapeName $flowerNameObj;
+}
+
+global proc onCreateLInstanceNode()
+{
+    global string $branchNameObj;
+    global string $flowerNameObj;
+    global string $textbox;
+    global string $iterSlider;
+    global string $stepSlider;
+    global string $angleSlider;
+    global string $tree;
+    global string $treeFrame;
+    global int $currNum_LSIN;
+
+    print("Getting values from GUI\n");
+    string $tx = `scrollField -q -tx $textbox`;
+    int $iterV = `intSliderGrp -q -v $iterSlider`;
+    float $stepV = `floatSliderGrp -q -v $stepSlider`;
+    float $angleV = `floatSliderGrp -q -v $angleSlider`;
+
+    // Set up names
+    string $branchShape = `textField -q -tx $branchNameObj`;
+    print("   " + $branchShape + "\n");
+    string $flowerShape = `textField -q -tx $flowerNameObj`;
+    print("   " + $flowerShape + "\n");
+
+    int $bShapeExists = `objExists $branchShape`;
+    int $fShapeExists = `objExists $flowerShape`;
+
+    if($bShapeExists && $fShapeExists) {
+        // Names
+        string $lSysName = "InstancedLSystem" + $currNum_LSIN;
+        string $branchInstName = "branchInstancer" + $currNum_LSIN;
+        string $flowerInstName = "flowerInstancer" + $currNum_LSIN;
+        string $nodeName = "LSystemInstanceNode" + $currNum_LSIN;
+
+        // Main objects
+        print("Creating Nodes and Instancers\n");
+        string $parentTrans = `createNode transform -n $lSysName`;
+
+        string $currBranchInst = `instancer -n $branchInstName`;
+        string $currFlowerInst = `instancer -n $flowerInstName`;
+
+        parent $currBranchInst $parentTrans;
+        parent $currFlowerInst $parentTrans;
+
+        string $currNode = `createNode LSystemInstanceNode -n $nodeName`;
+        print("  " + $parentTrans + "\n");
+        print("    " + $currBranchInst + "\n");
+        print("    " + $currFlowerInst + "\n");
+        print("    " + $currNode + "\n");
+
+        // Attributes
+        print("Setting attributes\n");
+        setAttr ($currNode + ".iterations") $iterV;
+        setAttr ($currNode + ".step") $stepV;
+        setAttr ($currNode + ".angle") $angleV;
+        setAttr ($currNode + ".grammar") -type "string" $tx;
+
+        // Connections
+        print("Setting Connections\n");
+        connectAttr ($currNode + ".outBranches") ($currBranchInst + ".inputPoints");
+        connectAttr ($branchShape + ".matrix") ($currBranchInst + ".inputHierarchy[0]");
+     
+        connectAttr ($currNode + ".outFlowers") ($currFlowerInst + ".inputPoints");
+        connectAttr ($flowerShape + ".matrix") ($currFlowerInst + ".inputHierarchy[0]");
+     
+        // Putting into a tree to view
+        treeView -edit -addItem $parentTrans "" $tree;
+        treeView -edit -addItem $currBranchInst $parentTrans $tree;
+        treeView -edit -addItem $currFlowerInst $parentTrans $tree;
+        // Adding an X to their buttons
+        treeView -edit -buttonTextIcon $parentTrans 1 "X" $tree;
+        treeView -edit -buttonTextIcon $currBranchInst 1 "X" $tree;
+        treeView -edit -buttonTextIcon $currFlowerInst 1 "X" $tree;
+        // Opening the frame
+        frameLayout -edit -collapse false $treeFrame;
+        int $heightF = `frameLayout -query -height $treeFrame`;
+        if ($heightF < 100) {
+            frameLayout -edit -height 100 $treeFrame;
+        }
+
+        $currNum_LSIN = $currNum_LSIN + 1;
+        print("finished mel\n");
+    }
+    else {
+        print("No Match\n");
+        if ($bShapeExists) {
+            textField -e -tx $branchShape $branchNameObj;
+        }
+        else {
+            textField -e -tx "No Match" $branchNameObj;
+        }
+
+        if ($fShapeExists) {
+            textField -e -tx $flowerShape $flowerNameObj;
+        }
+        else {
+            textField -e -tx "No Match" $flowerNameObj;
+        }
+    }
+}
+
+global proc onClearLInst() {
+    global string $tree;
+    global string $treeFrame;
+    global int $currNum_LSIN;
+
+    // Reset the scene
+    print("Scene reset button pressed...\n");
+
+    string $result = `confirmDialog -title "Clear Scene" 
+        -message "Clear and reset entire scene?"
+        -button "Yes" -button "No" 
+        -cancelButton "No"-defaultButton "No"`;
+
+    if ($result == "Yes") {
+        treeView -edit -removeAll $tree;
+        frameLayout -edit -collapse true $treeFrame;
+        frameLayout -edit -height 1 $treeFrame;
+        $currNum_LSIN = 1;
+
+        file -f -new;
+        print("Scene Reset\n");
+    } 
+    else warning "Reset cancelled: scene preserved\n";
+}
+
+global proc changeInstanceText(string $grammar)
+{
+    global string $textbox;
+    print($grammar + "\n\n");
+
+    scrollField -e -tx $grammar $textbox;
+}
+
+global proc getInstanceFileData(string $parent, string $selectedFile)
+{
+    $file = `fopen $selectedFile "r"`;
+	print("Loading grammar from file:\n");
+	print($selectedFile + "\n");
+
+    string $grammar = `fread $file $grammar`;
+    changeInstanceText($grammar);
+}
+
+global proc onInstanceDialogCreate(string $parent) {}
+
+global proc showInstanceFileDialog()
+{
+	fileDialog2 
+	-fileFilter "*.txt" -dialogStyle 2 -fileMode 1 
+	-optionsUICreate "onInstanceDialogCreate" 
+	-optionsUICommit2 "getInstanceFileData";
+}

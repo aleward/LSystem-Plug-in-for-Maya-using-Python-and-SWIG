@@ -1,0 +1,190 @@
+global string $nameObj_RN;
+global string $numPoints_RN;
+global string $minBoundX_RN;
+global string $minBoundY_RN;
+global string $minBoundZ_RN;
+global string $maxBoundX_RN;
+global string $maxBoundY_RN;
+global string $maxBoundZ_RN;
+global int $currNum_RN = 1;
+
+global proc makeRandomNodeWindow() {
+    global string $nameObj_RN;
+    global string $numPoints_RN;
+    global string $minBoundX_RN;
+    global string $minBoundY_RN;
+    global string $minBoundZ_RN;
+    global string $maxBoundX_RN;
+    global string $maxBoundY_RN;
+    global string $maxBoundZ_RN;
+
+    string $window = `window -title "RandomNode"`;
+    	paneLayout -configuration "horizontal2";
+    	frameLayout -label "Create randomly placed instances of an object" -marginHeight 5 -marginWidth 5 -collapsable false -borderVisible false;
+    		
+            text -label "Name of Object to Duplicate:" -align "left" -font "obliqueLabelFont";
+    		rowLayout -numberOfColumns 5 -adjustableColumn 1;
+    			$nameObj_RN = `textField`;
+                text -label ", ";
+                button -label "Selected Object" -command "getSelectedShape";
+                text -label ", or ";
+    			button -label "Create Sphere" -command "makeSphere";
+    		setParent ..;
+            
+            frameLayout -labelVisible false -marginHeight 5 -marginWidth 5 -collapsable false -backgroundShade true -borderVisible true;
+                columnLayout;
+    		        rowLayout -numberOfColumns 2;
+    		        	text -label "Number of Points: ";
+    		        	$numPoints_RN = `intField -minValue 1 -value 1`;
+    		        setParent ..;
+
+    		        rowLayout -numberOfColumns 4;
+    		        	text -label "Minimum Bound: ";
+    		        	$minBoundX_RN = `floatField -value -5.0`;
+    		        	$minBoundY_RN = `floatField -value -5.0`;
+    		        	$minBoundZ_RN = `floatField -value -5.0`;
+    		        setParent ..;
+
+    		        rowLayout -numberOfColumns 4;
+    		        	text -label "Maximum Bound: ";
+    		        	$maxBoundX_RN = `floatField -value 5.0`;
+    		        	$maxBoundY_RN = `floatField -value 5.0`;
+    		        	$maxBoundZ_RN = `floatField -value 5.0`;
+    		        setParent ..;
+    		    setParent ..;
+    		setParent ..;
+
+    		rowLayout -numberOfColumns 3 -adjustableColumn 2;
+    			button -label "Create Instancer" -command "onCreateRandomNode";
+    			text -label "";
+    			button -label "Clear" -command "onClear";
+    		setParent ..;
+    	setParent ..;
+    showWindow $window;
+}
+makeRandomNodeWindow();
+
+global proc getSelectedShape() {
+    global string $nameObj_RN;
+
+    string $selected[] = `ls -selection`;
+    int $listSize = `size $selected`;
+
+    if ($listSize == 1) {
+        textField -e -tx $selected[0] $nameObj_RN;
+        print($selected[0] + "\n");
+    }
+    else if ($listSize > 1) {
+        textField -e -tx "Choose One" $nameObj_RN;
+        print("Multiple Selected\n");
+    }
+    else {
+        textField -e -tx "None" $nameObj_RN;
+        print("None Selected\n");
+    }
+}
+
+global proc makeSphere()
+{
+    global string $nameObj_RN;
+    global int $currNum_RN;
+
+    // Set up names
+    string $shapeName = "pSphere" + $currNum_RN;
+
+    print("Creating a sphere\n");
+    if(`objExists $shapeName` == false) {
+        string $sphereInfo[] = `polySphere -n $shapeName -r 1 -sx 10 -sy 10 -ax 0 1 0 -cuv 2 -ch 1`;
+        print($sphereInfo);
+    }
+    else {
+        select -r $shapeName;
+    }
+
+    textField -e -tx $shapeName $nameObj_RN;
+}
+
+global proc onCreateRandomNode()
+{
+    global string $nameObj_RN;
+    global string $numPoints_RN;
+    global string $minBoundX_RN;
+    global string $minBoundY_RN;
+    global string $minBoundZ_RN;
+    global string $maxBoundX_RN;
+    global string $maxBoundY_RN;
+    global string $maxBoundZ_RN;
+    global int $currNum_RN;
+
+    print("Getting values from GUI\n");
+    int $numV = `intField -q -v $numPoints_RN`;
+
+    float $minX = `floatField -q -v $minBoundX_RN`;
+    float $minY = `floatField -q -v $minBoundY_RN`;
+    float $minZ = `floatField -q -v $minBoundZ_RN`;
+
+    float $maxX = `floatField -q -v $maxBoundX_RN`;
+    float $maxY = `floatField -q -v $maxBoundY_RN`;
+    float $maxZ = `floatField -q -v $maxBoundZ_RN`;
+
+    // Set up names
+    string $shapeName = `textField -q -tx $nameObj_RN`;
+    print("   " + $shapeName + "\n");
+
+    if(`objExists $shapeName`) {
+        // Names
+        string $instName = "instancer" + $currNum_RN;
+        string $nodeName = "randomNode" + $currNum_RN;
+
+        // Main objects
+        print("Creating Instancer\n");
+        string $currInst = `instancer -n $instName`;
+        string $currNode = `createNode randomNode -n $nodeName`;
+        print("   " + $currInst + "\n");
+        print("   " + $currNode + "\n");
+
+        // Attributes
+        print("Setting attributes\n");
+        setAttr ($currNode + ".minimumBoundX") $minX;
+        setAttr ($currNode + ".minimumBoundY") $minY;
+        setAttr ($currNode + ".minimumBoundZ") $minZ;
+
+        setAttr ($currNode + ".maximumBoundX") $maxX;
+        setAttr ($currNode + ".maximumBoundY") $maxY;
+        setAttr ($currNode + ".maximumBoundZ") $maxZ;
+
+        setAttr ($currNode + ".numberOfPoints") $numV;
+
+        // Connections
+        print("Setting Connections\n");
+        connectAttr ($currNode + ".outPoints") ($currInst + ".inputPoints");
+        connectAttr ($shapeName + ".matrix") ($currInst + ".inputHierarchy[0]");
+        
+        //select $currInst;
+
+        $currNum_RN = $currNum_RN + 1;
+        print("finished mel\n");
+    }
+    else {
+        print("No Match\n");
+        textField -e -tx "No Match" $nameObj_RN;
+    }
+}
+
+global proc onClear() {
+    global int $currNum_RN;
+    
+    // Reset the scene
+    print("Scene reset button pressed...\n");
+
+    string $result = `confirmDialog -title "Clear Scene" 
+        -message "Clear and reset entire scene?"
+        -button "Yes" -button "No" 
+        -cancelButton "No"-defaultButton "No"`;
+
+    if ($result == "Yes") {
+        $currNum_RN = 1;
+        file -f -new;
+        print("Scene Reset\n");
+    } else warning "Reset cancelled: scene preserved\n";
+}
