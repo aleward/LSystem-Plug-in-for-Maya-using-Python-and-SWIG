@@ -8,13 +8,13 @@ Built in **Microsoft Visual Studio 2015** for **Maya 2019** using **Python 2.7.1
 
 ## Demo Video
 
-[![](images/videoheader.png)](https://drive.google.com/file/d/1_TypolYxeEIrEo3jBMG0_kUkVvQPrpcr/view?usp=sharing)
+[![](images/videoheader.png)](https://drive.google.com/file/d/11yA1la0eTHvMfHPD5YeXhlzs0AiLCIQM/view?usp=sharing)
 
 
 
 ## RandomNode Network 
 
-![randomtree.png](images\randomtree.png)
+![](images\randomtree.png)
 
 A .py plug-in which allows the user to call a MEL script that connect some shape and a "randomNode" to an instancer for random object placement. The default option is to use a polygon sphere, but it can work with any pre-selected geometry.
 
