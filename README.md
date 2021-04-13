@@ -16,7 +16,7 @@ Built in **Microsoft Visual Studio 2015** for **Maya 2019** using **Python 2.7.1
 
 ![randomtree](images/randomtree.png)
 
-A .py plug-in which allows the user to call a MEL script that connect some shape and a "randomNode" to an instancer for random object placement. The default option is to use a polygon sphere, but it can work with any pre-selected geometry.
+A python-based plug-in which allows the user to call a MEL script that connects some shape object and a "randomNode" to an instancer for random object instance placement. The default option is to use a polygon sphere, but it can work with any pre-selected geometry.
 
 <table>
   <tr>
@@ -37,7 +37,7 @@ A .py plug-in which allows the user to call a MEL script that connect some shape
 
 ![instancedTree](images/instancedTree.png)
 
-A .py plug-in which allows the user to call a MEL script that generates a LSystem and constructs each of its branches and flowers using two separate instancers. The default option is to use a cube for the branches and a sphere for the flowers, but it can work with any pre-selected shapes.
+A python-based plug-in which allows the user to call a MEL script that generates a LSystem and constructs each of its branches and flowers using two separate instancers. The default option is to use a cube for the branches and a sphere for the flowers, but it can work with any pre-selected shapes.
 
 <table>
   <tr>
